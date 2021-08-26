@@ -1,12 +1,20 @@
-resource "aws_api_gateway_resource" "resource" {
-  rest_api_id = var.api_id
-  parent_id   = var.api_root_resource_id
-  path_part   = var.path
+locals {
+  path_parts = split("/", var.path)
+}
+
+module "resources" {
+  source = "./api_gateway_resources"
+  count  = length(local.path_parts)
+
+  api_id          = var.api_id
+  parent_path     = "/"
+  path_parts      = local.path_parts
+  path_part_index = count.index
 }
 
 resource "aws_api_gateway_method" "method" {
   rest_api_id          = var.api_id
-  resource_id          = aws_api_gateway_resource.resource.id
+  resource_id          = module.resources[length(local.path_parts) - 1].resource_id
   http_method          = var.method
   authorization        = "NONE"
   authorization_scopes = []
@@ -16,7 +24,7 @@ resource "aws_api_gateway_method" "method" {
 
 resource "aws_api_gateway_integration" "integration" {
   rest_api_id          = var.api_id
-  resource_id          = aws_api_gateway_resource.resource.id
+  resource_id          = module.resources[length(local.path_parts) - 1].resource_id
   http_method          = aws_api_gateway_method.method.http_method
   type                 = "MOCK"
   passthrough_behavior = "WHEN_NO_MATCH"
@@ -32,7 +40,7 @@ EOF
 
 resource "aws_api_gateway_method_response" "response" {
   rest_api_id     = var.api_id
-  resource_id     = aws_api_gateway_resource.resource.id
+  resource_id     = module.resources[length(local.path_parts) - 1].resource_id
   http_method     = aws_api_gateway_method.method.http_method
   status_code     = 200
   response_models = {}
@@ -46,7 +54,7 @@ resource "aws_api_gateway_method_response" "response" {
 
 resource "aws_api_gateway_integration_response" "response" {
   rest_api_id       = var.api_id
-  resource_id       = aws_api_gateway_resource.resource.id
+  resource_id       = module.resources[length(local.path_parts) - 1].resource_id
   http_method       = aws_api_gateway_method.method.http_method
   status_code       = aws_api_gateway_method_response.response.status_code
   selection_pattern = 200
