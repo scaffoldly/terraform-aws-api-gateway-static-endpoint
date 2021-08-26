@@ -1,4 +1,4 @@
-# terraform-aws-serverless-api-stage-mock
+# terraform-aws-api-gateway-static-endpoint
 <!-- BEGIN_TF_DOCS -->
 ## Requirements
 
