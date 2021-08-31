@@ -12,6 +12,10 @@ resource "aws_api_gateway_method" "method" {
   authorization_scopes = []
   request_parameters   = {}
   request_models       = {}
+
+  depends_on = [
+    aws_api_gateway_resource.resource
+  ]
 }
 
 resource "aws_api_gateway_integration" "integration" {
@@ -28,6 +32,10 @@ resource "aws_api_gateway_integration" "integration" {
 {"statusCode": 200}
 EOF
   }
+
+  depends_on = [
+    aws_api_gateway_method.method
+  ]
 }
 
 resource "aws_api_gateway_method_response" "response" {
@@ -42,6 +50,10 @@ resource "aws_api_gateway_method_response" "response" {
     "method.response.header.Access-Control-Allow-Methods" = true
     "method.response.header.Access-Control-Allow-Origin"  = true
   }
+
+  depends_on = [
+    aws_api_gateway_integration.integration
+  ]
 }
 
 resource "aws_api_gateway_integration_response" "response" {
@@ -60,4 +72,8 @@ resource "aws_api_gateway_integration_response" "response" {
     "method.response.header.Access-Control-Allow-Methods" = "'*'"
     "method.response.header.Access-Control-Allow-Origin"  = "'*'"
   }
+
+  depends_on = [
+    aws_api_gateway_method_response.response
+  ]
 }
